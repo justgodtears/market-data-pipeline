@@ -21,8 +21,14 @@ def fetch_market_data(endpoint, symbol, api_key):
     :return: Raw response from Alpha Vantage API
     """
     parameters = {"function":"TIME_SERIES_DAILY", "symbol":symbol, "apikey":api_key}
-    response = httpx.get(endpoint, params=parameters)
-    return response.json()
+    try:
+      response = httpx.get(endpoint, params=parameters)
+      if "Information" in response.json():
+          raise ValueError(response.json()["Information"])
+      return response.json()
+    except httpx.RequestError:
+        raise ConnectionError("Failed to connect to Alpha Vantage API")
+
 
 @task
 def json_cleaning(data):
